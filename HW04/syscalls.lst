@@ -1,0 +1,7 @@
+# v seznamu ponechte jen ta jmena systemovych volani, ktera Vase varianta pouziva
+# jednu polozku na radek bez mezer a oddelovacu
+# left only these syscalls name in the list which are used by your program variant
+# single entry per line without spaces or other separators
+exit
+read
+write

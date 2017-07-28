@@ -1,0 +1,289 @@
+//why save and load again
+//a3 save to 1/0 after syscall??
+//t9 during calling subroutine
+
+//save a3 to stack, save v0 to stack, load from stack a3 to v0 ???
+
+//what returns SYSCALL from macro
+
+
+program code
+
+
+build/program-mips:     file format elf32-tradlittlemips
+
+Disassembly of section my_text:
+
+
+
+
+
+
+
+00404b90 <subroutine_fnc>:
+  404b90:	3c1c0005 	lui	gp,0x5
+  404b94:	279c9730 	addiu	gp,gp,-26832
+  404b98:	0399e021 	addu	gp,gp,t9
+
+
+//stack pointer 
+  404b9c:	27bdffd8 	addiu	sp,sp,-40 	//allocate 40 bytes for stack
+  404ba0:	afbe0020 	sw	s8,32(sp)	//save s8
+  404ba4:	03a0f021 	move	s8,sp		//save sp to s8
+
+
+  404ba8:	afc40028 	sw	a0,40(s8) 	//save a0 to stack
+  404bac:	8fc40028 	lw	a0,40(s8) 	//nonsence
+  404bb0:	27c50008 	addiu	a1,s8,8		//add 8 to sp	char c - the value is stored there
+  404bb4:	24060001 	li	a2,1		
+  404bb8:	24020fa3 	li	v0,4003
+  404bbc:	0000000c 	syscall
+
+//a0 prvni argument funkce
+//a1 sp +8 = buffer
+//a2 maximum number of characters that willl be read
+//a3 is save to 0/success 1/error
+
+  404bc0:	afc70010 	sw	a3,16(s8)	//save output of syscall
+  404bc4:	afc20014 	sw	v0,20(s8)	//save return value of READ to stack
+  404bc8:	8fc20010 	lw	v0,16(s8)	//get 3. argument to ret value
+  404bcc:	00000000 	nop
+  
+
+
+
+  //TEST if syscall was successful - return value = a3 is not equal to zero
+  404bd0:	14400006 	bnez	v0,404bec <__start_my_text+0x5c>
+ //a3 IS 0 (SUCCESSFUL)	-> set v0 to v0 from the STACK
+  404bd4:	00000000 	nop
+  404bd8:	8fc20014 	lw	v0,20(s8) 	//get the former value from stack (ret val of READ)
+  404bdc:	00000000 	nop
+  404be0:	afc2001c 	sw	v0,28(s8)	//save the ret address of READ to stack 
+  404be4:	10000003 	b	404bf4 <__start_my_text+0x64> //jump
+  404be8:	00000000 	nop
+
+  //a3 is NOT 0 (NOT SUCCESSFUL) -> set v0 to -1
+  404bec:	2402ffff 	li	v0,-1		//v0 = -1
+  404bf0:	afc2001c 	sw	v0,28(s8)	//save -1 to STACK
+
+  //JUMP FROM is equal to 0 	
+  404bf4:	8fc2001c 	lw	v0,28(s8)	//load to v0 STACK address 
+  404bf8:	00000000 	nop
+  404bfc:	afc2000c 	sw	v0,12(s8)	//save it
+  404c00:	8fc2000c 	lw	v0,12(s8)	//load it ???
+  404c04:	00000000 	nop
+//now we have -1 in 12(sp) if not success or ret value if success
+//????????????????????????????????
+
+
+
+//TEST if return value is greater or equal than 0
+  404c08:	04410006 	bgez	v0,404c24 <__start_my_text+0x94>	//jump if is 0 ret value
+  //RETVALUE IS -1 EXIT
+  404c0c:	00000000 	nop
+  404c10:	24040001 	li	a0,1
+  404c14:	24020fa1 	li	v0,4001 
+  404c18:	0000000c 	syscall
+  404c1c:	afc70010 	sw	a3,16(s8) 	//save output of syscall
+  404c20:	afc20014 	sw	v0,20(s8)	//save v0 to STACK 
+
+  //JUMP if is GREATER or EQUAL THAN zero
+  404c24:	8fc2000c 	lw	v0,12(s8)	//load former v0
+  404c28:	00000000 	nop
+
+
+  //TEST if return value is not equal to 0
+  //RETURN VALUE IS 0 --> save it 
+  404c2c:	14400004 	bnez	v0,404c40 <__start_my_text+0xb0> //return value of the read is not 0
+  404c30:	00000000 	nop
+  404c34:	afc00018 	sw	zero,24(s8)		//save 0 to address in STACK that will be returned
+  404c38:	10000004 	b	404c4c <__start_my_text+0xbc>
+  404c3c:	00000000 	nop
+
+  //JUMP is not Equal to zero
+  404c40:	83c20008 	lb	v0,8(s8)		//load	the read char
+  404c44:	00000000 	nop
+  404c48:	afc20018 	sw	v0,24(s8)		//save the char to STACK
+
+  //other test
+  404c4c:	8fc20018 	lw	v0,24(s8)
+  404c50:	03c0e821 	move	sp,s8			
+  404c54:	8fbe0020 	lw	s8,32(sp)		///
+  404c58:	27bd0028 	addiu	sp,sp,40
+  404c5c:	03e00008 	jr	ra
+  404c60:	00000000 	nop
+
+
+
+
+
+
+
+
+00404c64 <toplevel_fnc>:
+  404c64:	3c1c0005 	lui	gp,0x5
+  404c68:	279c965c 	addiu	gp,gp,-27044
+  404c6c:	0399e021 	addu	gp,gp,t9
+
+  404c70:	27bdffc0 	addiu	sp,sp,-64	//allocate stack memory
+  404c74:	afbf003c 	sw	ra,60(sp)
+  404c78:	afbe0038 	sw	s8,56(sp)
+  404c7c:	03a0f021 	move	s8,sp
+  404c80:	afbc0010 	sw	gp,16(sp)
+  404c84:	afc00018 	sw	zero,24(s8)	//save zero for some reason 
+
+
+//START do while
+  404c88:	00002021 	move	a0,zero		//make the file descriptor argument stdin
+  404c8c:	8f998098 	lw	t9,-32616(gp)
+  404c90:	00000000 	nop
+
+
+ same instruction to call different subroutines depending on circumstances? This is where a jump table is useful. The table contains a list of subroutine entry points. To call a subroutine, copy its address from the table into a register. Now use the following instruction
+  404c94:	0320f809 	jalr	t9
+  404c98:	00000000 	nop
+
+
+//AFTER SUBROUTINE
+  404c9c:	8fdc0010 	lw	gp,16(s8)	//get back the global pointer
+  404ca0:	a3c20024 	sb	v0,36(s8)	//save the return value to STACK
+  404ca4:	93c20024 	lbu	v0,36(s8)	//load it as unsigned
+  404ca8:	00000000 	nop
+
+  404cac:	00021600 	sll	v0,v0,0x18
+  404cb0:	00021603 	sra	v0,v0,0x18		//let only 8 bits to live 
+
+
+
+//TEST RETURN VALUE OF SUBROUTINE IS GREATER THAN ZERO
+  404cb4:	18400049 	blez	v0,404ddc <toplevel_fnc+0x178>
+
+
+  //NOT EQUAL OR LESS 0
+  404cb8:	00000000 	nop
+  404cbc:	83c30024 	lb	v1,36(s8)		//v1 returned char
+  404cc0:	2402005c 	li	v0,92			//v0 92
+
+
+
+  //TEST if the output char is not 92
+  404cc4:	14620025 	bne	v1,v0,404d5c <toplevel_fnc+0xf8>
+  404cc8:	00000000 	nop
+
+  //OUTPUT char is 92------------------------------------------------------------------
+  404ccc:	8fc20018 	lw	v0,24(s8)		//load 0 - 24(sp) to v0
+  404cd0:	00000000 	nop
+  404cd4:	24420001 	addiu	v0,v0,1			//add 1 
+  404cd8:	afc20018 	sw	v0,24(s8)		//save 1 to 24(sp)
+
+  404cdc:	24040001 	li	a0,1		//1 = stdout
+  404ce0:	8f8580bc 	lw	a1,-32580(gp)	//address of output buffer  ---> mydata??	
+  404ce4:	24060002 	li	a2,2		//TWO BYTES WILL BE WRITTEN
+  404ce8:	24020fa4 	li	v0,4004 	//SYS_CALL WRITE
+  404cec:	0000000c 	syscall
+
+  //HANDLE WRITE
+  404cf0:	afc70020 	sw	a3,32(s8)	//save output of syscall
+  404cf4:	afc20028 	sw	v0,40(s8)	//save return value
+  404cf8:	8fc20020 	lw	v0,32(s8)	//load the a3 to v0
+  404cfc:	00000000 	nop
+
+  //TEST if WRITE return value is NOT equal 0
+  404d00:	14400006 	bnez	v0,404d1c <toplevel_fnc+0xb8>
+  404d04:	00000000 	nop
+  //SUCCESS ON WRITE
+  //a3 IS 0 (SUCCESSFUL)	-> set v0 to v0 from the STACK
+  404d08:	8fc20028 	lw	v0,40(s8)
+  404d0c:	00000000 	nop
+  404d10:	afc2002c 	sw	v0,44(s8)	//save v0 to STACK for comparision
+  404d14:	10000003 	b	404d24 <toplevel_fnc+0xc0>
+  404d18:	00000000 	nop
+
+  404d1c:	2402ffff 	li	v0,-1
+  404d20:	afc2002c 	sw	v0,44(s8)	//save v0 = -1 to STACK for comparision
+
+
+  404d24:	8fc2002c 	lw	v0,44(s8)	 
+  404d28:	00000000 	nop
+  404d2c:	afc2001c 	sw	v0,28(s8)	//save v0 	
+  404d30:	8fc2001c 	lw	v0,28(s8)
+  404d34:	00000000 	nop
+
+  //TEST if return value of WRITE is greater than zero
+  404d38:	0441ffd3 	bgez	v0,404c88 <toplevel_fnc+0x24>	//jump to part where 0 is saved to register
+  404d3c:	00000000 	nop
+  //v0 is less than 0 --> FAIL
+  //SYS_CALL EXIT:
+  404d40:	24040001 	li	a0,1
+  404d44:	24020fa1 	li	v0,4001
+  404d48:	0000000c 	syscall
+  404d4c:	afc70020 	sw	a3,32(s8)
+  404d50:	afc20028 	sw	v0,40(s8)
+  404d54:	1000ffcc 	b	404c88 <toplevel_fnc+0x24>	//jump there either
+  404d58:	00000000 	nop
+//---------------------------------------------------------------------------------------
+
+
+//OUTPUT CHAR IS NOT 92
+  404d5c:	24040001 	li	a0,1
+  404d60:	27c50024 	addiu	a1,s8,36
+  404d64:	24060001 	li	a2,1
+  404d68:	24020fa4 	li	v0,4004
+  404d6c:	0000000c 	syscall
+  404d70:	afc70020 	sw	a3,32(s8)
+  404d74:	afc20028 	sw	v0,40(s8)
+  404d78:	8fc20020 	lw	v0,32(s8)
+  404d7c:	00000000 	nop
+
+
+
+//TEST IF WRITE RETURN not 0 value
+  404d80:	14400006 	bnez	v0,404d9c <toplevel_fnc+0x138>
+  //SUCCESSFUL
+  404d84:	00000000 	nop
+  404d88:	8fc20028 	lw	v0,40(s8)
+  404d8c:	00000000 	nop
+  404d90:	afc20030 	sw	v0,48(s8)
+  404d94:	10000003 	b	404da4 <toplevel_fnc+0x140>
+  404d98:	00000000 	nop
+
+
+//UNSUCCESSFUL
+  404d9c:	2402ffff 	li	v0,-1
+  404da0:	afc20030 	sw	v0,48(s8)
+
+  404da4:	8fc20030 	lw	v0,48(s8) //get v0 from stack
+  404da8:	00000000 	nop
+  404dac:	afc2001c 	sw	v0,28(s8)
+  404db0:	8fc2001c 	lw	v0,28(s8)
+  404db4:	00000000 	nop
+
+  //TEST IF WRITE WAS SUCCESSFUL
+  404db8:	0441ffb3 	bgez	v0,404c88 <toplevel_fnc+0x24>
+  404dbc:	00000000 	nop
+  404dc0:	24040001 	li	a0,1
+  404dc4:	24020fa1 	li	v0,4001
+  404dc8:	0000000c 	syscall
+  404dcc:	afc70020 	sw	a3,32(s8)
+  404dd0:	afc20028 	sw	v0,40(s8)
+  404dd4:	1000ffac 	b	404c88 <toplevel_fnc+0x24>
+  404dd8:	00000000 	nop
+
+
+
+  ///jump if subroutine returns error 
+  404ddc:	8fc20018 	lw	v0,24(s8) //load the value which was 0 at first
+  404de0:	03c0e821 	move	sp,s8
+  404de4:	8fbf003c 	lw	ra,60(sp)
+  404de8:	8fbe0038 	lw	s8,56(sp)
+  404dec:	27bd0040 	addiu	sp,sp,64
+  404df0:	03e00008 	jr	ra
+  404df4:	00000000 	nop
+
+program data
+
+
+build/program-mips:     file format elf32-tradlittlemips
+
+Contents of section my_data:
+ 4462c0 5c5c0000                             \\..            

@@ -1,0 +1,192 @@
+
+program source "tasks/task-10.c"
+
+
+build command "gcc -I. -m32 -Wall -ggdb -O1"
+
+
+build/program-x86:     file format elf32-i386
+
+Disassembly of section my_text:
+
+080a9dfc <subroutine_fnc>:
+#include <fcntl.h>
+
+DATA_ATTR char out_file_name[] = "data";
+
+FUNC_ATTR int subroutine_fnc(int fd, int numeric_base)
+{
+ 80a9dfc:	55                   	push   %ebp
+ 80a9dfd:	89 e5                	mov    %esp,%ebp
+ 80a9dff:	57                   	push   %edi
+ 80a9e00:	56                   	push   %esi
+ 80a9e01:	53                   	push   %ebx
+ 80a9e02:	83 ec 14             	sub    $0x14,%esp
+ 80a9e05:	c7 45 e0 00 00 00 00 	movl   $0x0,-0x20(%ebp)
+  int res;
+  char ch;
+  
+  do {
+
+    res = INTERNAL_SYSCALL(read, err_res, 3, fd, &ch, 1);
+ 80a9e0c:	8d 7d f3             	lea    -0xd(%ebp),%edi
+    if (res != 1)
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+
+    if((ch<'0') || (ch>='0'+numeric_base))
+ 80a9e0f:	8b 75 0c             	mov    0xc(%ebp),%esi
+ 80a9e12:	83 c6 30             	add    $0x30,%esi
+  int res;
+  char ch;
+  
+  do {
+
+    res = INTERNAL_SYSCALL(read, err_res, 3, fd, &ch, 1);
+ 80a9e15:	ba 01 00 00 00       	mov    $0x1,%edx
+ 80a9e1a:	8b 5d 08             	mov    0x8(%ebp),%ebx
+ 80a9e1d:	89 f9                	mov    %edi,%ecx
+ 80a9e1f:	b8 03 00 00 00       	mov    $0x3,%eax
+ 80a9e24:	cd 80                	int    $0x80
+    if (res != 1)
+ 80a9e26:	83 f8 01             	cmp    $0x1,%eax
+ 80a9e29:	74 0c                	je     80a9e37 <subroutine_fnc+0x3b>
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+ 80a9e2b:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 80a9e30:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9e35:	cd 80                	int    $0x80
+
+    if((ch<'0') || (ch>='0'+numeric_base))
+ 80a9e37:	0f b6 45 f3          	movzbl -0xd(%ebp),%eax
+ 80a9e3b:	3c 2f                	cmp    $0x2f,%al
+ 80a9e3d:	7e 17                	jle    80a9e56 <subroutine_fnc+0x5a>
+ 80a9e3f:	0f be d0             	movsbl %al,%edx
+ 80a9e42:	39 f2                	cmp    %esi,%edx
+ 80a9e44:	7d 10                	jge    80a9e56 <subroutine_fnc+0x5a>
+      break;
+
+    val *= numeric_base;
+ 80a9e46:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 80a9e49:	0f af 45 e0          	imul   -0x20(%ebp),%eax
+    val += ch - '0';
+ 80a9e4d:	8d 54 10 d0          	lea    -0x30(%eax,%edx,1),%edx
+ 80a9e51:	89 55 e0             	mov    %edx,-0x20(%ebp)
+ 80a9e54:	eb bf                	jmp    80a9e15 <subroutine_fnc+0x19>
+  } while(1);
+
+  return val;
+}
+ 80a9e56:	8b 45 e0             	mov    -0x20(%ebp),%eax
+ 80a9e59:	83 c4 14             	add    $0x14,%esp
+ 80a9e5c:	5b                   	pop    %ebx
+ 80a9e5d:	5e                   	pop    %esi
+ 80a9e5e:	5f                   	pop    %edi
+ 80a9e5f:	5d                   	pop    %ebp
+ 80a9e60:	c3                   	ret    
+
+080a9e61 <toplevel_fnc>:
+
+
+FUNC_ATTR int toplevel_fnc(void)
+{
+ 80a9e61:	55                   	push   %ebp
+ 80a9e62:	89 e5                	mov    %esp,%ebp
+ 80a9e64:	57                   	push   %edi
+ 80a9e65:	56                   	push   %esi
+ 80a9e66:	53                   	push   %ebx
+ 80a9e67:	83 ec 20             	sub    $0x20,%esp
+  int ret_val;
+  int err_res;
+  int count;
+  int result;
+  char ch = 'A';
+ 80a9e6a:	c6 45 f3 41          	movb   $0x41,-0xd(%ebp)
+  int fd;
+
+  count = subroutine_fnc(0, 10);
+ 80a9e6e:	c7 44 24 04 0a 00 00 	movl   $0xa,0x4(%esp)
+ 80a9e75:	00 
+ 80a9e76:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp)
+ 80a9e7d:	e8 7a ff ff ff       	call   80a9dfc <subroutine_fnc>
+ 80a9e82:	89 c7                	mov    %eax,%edi
+
+  result = count;
+
+
+  fd = INTERNAL_SYSCALL(open, err_res, 3, out_file_name, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+ 80a9e84:	ba 80 01 00 00       	mov    $0x180,%edx
+ 80a9e89:	b9 42 02 00 00       	mov    $0x242,%ecx
+ 80a9e8e:	be 00 7f 0c 08       	mov    $0x80c7f00,%esi
+ 80a9e93:	89 f3                	mov    %esi,%ebx
+ 80a9e95:	b8 05 00 00 00       	mov    $0x5,%eax
+ 80a9e9a:	cd 80                	int    $0x80
+ 80a9e9c:	89 45 dc             	mov    %eax,-0x24(%ebp)
+  if(fd<0)
+ 80a9e9f:	85 c0                	test   %eax,%eax
+ 80a9ea1:	79 0e                	jns    80a9eb1 <toplevel_fnc+0x50>
+    INTERNAL_SYSCALL(exit, err_res, 1, 1);
+ 80a9ea3:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9ea8:	89 c3                	mov    %eax,%ebx
+ 80a9eaa:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9eaf:	cd 80                	int    $0x80
+ 80a9eb1:	89 7d e0             	mov    %edi,-0x20(%ebp)
+
+  while(count--) {
+    ret_val = INTERNAL_SYSCALL(write, err_res, 3, fd, &ch, 1);
+ 80a9eb4:	8d 75 f3             	lea    -0xd(%ebp),%esi
+ 80a9eb7:	eb 22                	jmp    80a9edb <toplevel_fnc+0x7a>
+ 80a9eb9:	8b 5d dc             	mov    -0x24(%ebp),%ebx
+ 80a9ebc:	89 f1                	mov    %esi,%ecx
+ 80a9ebe:	ba 01 00 00 00       	mov    $0x1,%edx
+ 80a9ec3:	b8 04 00 00 00       	mov    $0x4,%eax
+ 80a9ec8:	cd 80                	int    $0x80
+    if(ret_val<0)
+ 80a9eca:	85 c0                	test   %eax,%eax
+ 80a9ecc:	79 09                	jns    80a9ed7 <toplevel_fnc+0x76>
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+ 80a9ece:	89 d3                	mov    %edx,%ebx
+ 80a9ed0:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9ed5:	cd 80                	int    $0x80
+ 80a9ed7:	83 6d e0 01          	subl   $0x1,-0x20(%ebp)
+
+  fd = INTERNAL_SYSCALL(open, err_res, 3, out_file_name, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+  if(fd<0)
+    INTERNAL_SYSCALL(exit, err_res, 1, 1);
+
+  while(count--) {
+ 80a9edb:	83 7d e0 00          	cmpl   $0x0,-0x20(%ebp)
+ 80a9edf:	75 d8                	jne    80a9eb9 <toplevel_fnc+0x58>
+    ret_val = INTERNAL_SYSCALL(write, err_res, 3, fd, &ch, 1);
+    if(ret_val<0)
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+  }
+
+  ret_val = INTERNAL_SYSCALL(close, err_res, 1, fd);
+ 80a9ee1:	8b 5d dc             	mov    -0x24(%ebp),%ebx
+ 80a9ee4:	b8 06 00 00 00       	mov    $0x6,%eax
+ 80a9ee9:	cd 80                	int    $0x80
+  if(ret_val<0)
+ 80a9eeb:	85 c0                	test   %eax,%eax
+ 80a9eed:	79 0e                	jns    80a9efd <toplevel_fnc+0x9c>
+    INTERNAL_SYSCALL(exit, err_res, 1, 1);
+ 80a9eef:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9ef4:	89 c3                	mov    %eax,%ebx
+ 80a9ef6:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80a9efb:	cd 80                	int    $0x80
+
+  return result;
+}
+ 80a9efd:	89 f8                	mov    %edi,%eax
+ 80a9eff:	83 c4 20             	add    $0x20,%esp
+ 80a9f02:	5b                   	pop    %ebx
+ 80a9f03:	5e                   	pop    %esi
+ 80a9f04:	5f                   	pop    %edi
+ 80a9f05:	5d                   	pop    %ebp
+ 80a9f06:	c3                   	ret    
+
+program data
+
+
+build/program-x86:     file format elf32-i386
+
+Contents of section my_data:
+ 80c7f00 64617461 00                          data.           

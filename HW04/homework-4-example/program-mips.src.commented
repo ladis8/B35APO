@@ -1,0 +1,206 @@
+
+program source "tasks/task-10.c"
+
+
+build command "/home/pi/tools/OpenWrt-SDK-brcm-2.4-for-Linux-x86_64/staging_dir_mipsel/bin/mipsel-linux-uclibc-gcc -I. -ggdb -O1"
+
+
+build/program-mips:     file format elf32-tradlittlemips
+
+Disassembly of section my_text:
+
+00404e20 <subroutine_fnc>:
+
+DATA_ATTR char out_file_name[] = "data";
+
+FUNC_ATTR int subroutine_fnc(int fd, int numeric_base)
+{
+  404e20:	3c1c0005 	lui	gp,0x5       // R_MIPS_HI16 _gp_disp  
+  404e24:	279c95e0 	addiu	gp,gp,-27168 // R_MIPS_LO16 _gp_disp
+  404e28:	0399e021 	addu	gp,gp,t9     // compute offset to the global data from
+                                                     // known address of actual function which
+                                                     // is assigned to t9 during call
+
+  404e2c:	27bdffd8 	addiu	sp,sp,-40    // reserve stack space for local variable
+
+  404e30:	afb40020 	sw	s4,32(sp)    // save callee save registers
+  404e34:	afb3001c 	sw	s3,28(sp)
+  404e38:	afb20018 	sw	s2,24(sp)
+  404e3c:	afb10014 	sw	s1,20(sp)
+  404e40:	afb00010 	sw	s0,16(sp)
+  404e44:	0080a021 	move	s4,a0        // s4 = 1. parameter
+  404e48:	00a09821 	move	s3,a1        // s3 = 2. parameter
+  int val = 0;
+  404e4c:	00008021 	move	s0,zero      // s0 = 0
+  404e50:	27a50008 	addiu	a1,sp,8
+  404e54:	24060001 	li	a2,1         // argument 2 = 1
+  404e58:	24120001 	li	s2,1
+  404e5c:	26710030 	addiu	s1,s3,48     // s1 = s3 + ASCII '0'
+  int err_res;
+  int res;
+  char ch;
+  
+  do {
+
+    res = INTERNAL_SYSCALL(read, err_res, 3, fd, &ch, 1);
+  404e60:	02802021 	move	a0,s4        // 1. parameter
+  404e64:	24020fa3 	li	v0,4003
+  404e68:	0000000c 	syscall              // read(1. function parameter, sp+8, 1)
+  404e6c:	10e00002 	beqz	a3,404e78 <__start_my_text+0x58>  // syscall was sucessfull
+  404e70:	00000000 	nop                  // prazdny delay slot
+  404e74:	2402ffff 	li	v0,-1        // no jump, set v0 = -1
+    if (res != 1)
+
+
+  404e78:	10520003 	beq	v0,s2,404e88 <__start_my_text+0x68>  // result v0 == s2 (=1)
+  404e7c:	24040001 	li	a0,1         // delay slot a0 = 1
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+  404e80:	24020fa1 	li	v0,4001      // exit(1)
+  404e84:	0000000c 	syscall
+
+    if((ch<'0') || (ch>='0'+numeric_base))
+  404e88:	83a30008 	lb	v1,8(sp)     // read byte from location sp+1 into v1
+  404e8c:	00000000 	nop
+  404e90:	28620030 	slti	v0,v1,48     // v0 = (v1 < ASCII '0')? 1: 0
+  404e94:	14400007 	bnez	v0,404eb4 <__start_my_text+0x94> // when true, jump to the function end
+  404e98:	0071102a 	slt	v0,v1,s1     // v0 = (v1 < (param 2 + ASCII '0'))? 1: 0
+  404e9c:	10400005 	beqz	v0,404eb4 <__start_my_text+0x94> // if false then end
+  404ea0:	02130018 	mult	s0,s3        // multiply s0 * param 2
+      break;
+
+    val *= numeric_base;
+  404ea4:	00008012 	mflo	s0           // load low 32 bits of multiplication result to s0
+    val += ch - '0';
+  404ea8:	00701021 	addu	v0,v1,s0     // v0 = v1 + s0, this is result of multiplication and read cahracter
+  } while(1);
+  404eac:	1000ffec 	b	404e60 <__start_my_text+0x40> // next cycle iteration,
+  404eb0:	2450ffd0 	addiu	s0,v0,-48    // compute s0 = v0 - ASCII '0' in the delay slot
+
+  return val;
+}
+
+  404eb4:	02001021 	move	v0,s0        // return s0
+  404eb8:	8fb40020 	lw	s4,32(sp)    // restore saved registers values
+  404ebc:	8fb3001c 	lw	s3,28(sp)
+  404ec0:	8fb20018 	lw	s2,24(sp)
+  404ec4:	8fb10014 	lw	s1,20(sp)
+  404ec8:	8fb00010 	lw	s0,16(sp)
+  404ecc:	03e00008 	jr	ra           // return from the function
+  404ed0:	27bd0028 	addiu	sp,sp,40     // stack is restored back to the value at function
+                                                     // entry in the return delay slot
+
+00404ed4 <toplevel_fnc>:
+
+
+FUNC_ATTR int toplevel_fnc(void)
+{
+  404ed4:	3c1c0005 	lui	gp,0x5         // R_MIPS_HI16 _gp_disp  
+  404ed8:	279c952c 	addiu	gp,gp,-27348   // R_MIPS_LO16 _gp_disp
+  404edc:	0399e021 	addu	gp,gp,t9       // compute offset to thye global data from
+                                                       // start address of the actual function found in t9
+
+  404ee0:	27bdffc8 	addiu	sp,sp,-56      // allocate space for local variables
+
+  404ee4:	afbf0030 	sw	ra,48(sp)      // save non cloberrable registers
+  404ee8:	afb3002c 	sw	s3,44(sp)
+  404eec:	afb20028 	sw	s2,40(sp)
+  404ef0:	afb10024 	sw	s1,36(sp)
+  404ef4:	afb00020 	sw	s0,32(sp)
+  404ef8:	afbc0010 	sw	gp,16(sp)      // save gp
+  int ret_val;
+  int err_res;
+  int count;
+  int result;
+  char ch = 'A';
+  404efc:	24020041 	li	v0,65          // read 65, ASCII 'A'
+  404f00:	a3a20018 	sb	v0,24(sp)      // store value in local variable at address sp-24
+  int fd;
+
+  count = subroutine_fnc(0, 10);
+  404f04:	00002021 	move	a0,zero        // a0 = 0
+  404f08:	2405000a 	li	a1,10          // a1 = 10
+  404f0c:	8f99809c 	lw	t9,-32612(gp)  // find function address in the GOT (global offset table)
+  404f10:	00000000 	nop
+  404f14:	0320f809 	jalr	t9             // call function with input parameters (0, 10) such
+  404f18:	00000000 	nop                    // way that function address is stored in t9, delay slot nop
+  404f1c:	8fbc0010 	lw	gp,16(sp)      // restore back gp value
+  404f20:	00409821 	move	s3,v0          // store result to s3
+
+  result = count;
+  404f24:	00408021 	move	s0,v0          // copyt result even to s0
+
+
+  fd = INTERNAL_SYSCALL(open, err_res, 3, out_file_name, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+  404f28:	8f8481b4 	lw	a0,-32332(gp)  // read pointer to the data
+  404f2c:	24050302 	li	a1,770
+  404f30:	24060180 	li	a2,384
+  404f34:	24020fa5 	li	v0,4005        // open(pointer,770,384)
+  404f38:	0000000c 	syscall
+  404f3c:	10e00002 	beqz	a3,404f48 <toplevel_fnc+0x74> // result is OK
+  404f40:	00000000 	nop
+  404f44:	2402ffff 	li	v0,-1
+  if(fd<0)
+  404f48:	04410004 	bgez	v0,404f5c <toplevel_fnc+0x88>
+  404f4c:	00408821 	move	s1,v0
+    INTERNAL_SYSCALL(exit, err_res, 1, 1);
+  404f50:	24040001 	li	a0,1
+  404f54:	24020fa1 	li	v0,4001
+  404f58:	0000000c 	syscall
+
+  while(count--) {
+    ret_val = INTERNAL_SYSCALL(write, err_res, 3, fd, &ch, 1);
+    if(ret_val<0)
+      INTERNAL_SYSCALL(exit, err_res, 1, 1);
+  404f5c:	2610ffff 	addiu	s0,s0,-1
+  404f60:	2402ffff 	li	v0,-1
+  404f64:	12020010 	beq	s0,v0,404fa8 <toplevel_fnc+0xd4>
+  404f68:	02202021 	move	a0,s1
+  404f6c:	27a50018 	addiu	a1,sp,24
+  404f70:	24060001 	li	a2,1
+  404f74:	2412ffff 	li	s2,-1
+  404f78:	24020fa4 	li	v0,4004
+  404f7c:	0000000c 	syscall
+  404f80:	10e00002 	beqz	a3,404f8c <toplevel_fnc+0xb8>
+  404f84:	00000000 	nop
+  404f88:	2402ffff 	li	v0,-1
+  404f8c:	04410003 	bgez	v0,404f9c <toplevel_fnc+0xc8>
+  404f90:	24040001 	li	a0,1
+  404f94:	24020fa1 	li	v0,4001
+  404f98:	0000000c 	syscall
+  404f9c:	2610ffff 	addiu	s0,s0,-1
+  404fa0:	1612fff5 	bne	s0,s2,404f78 <toplevel_fnc+0xa4>
+  404fa4:	02202021 	move	a0,s1
+  }
+
+  ret_val = INTERNAL_SYSCALL(close, err_res, 1, fd);
+  404fa8:	24020fa6 	li	v0,4006
+  404fac:	0000000c 	syscall
+  404fb0:	10e00002 	beqz	a3,404fbc <toplevel_fnc+0xe8>
+  404fb4:	00000000 	nop
+  404fb8:	2402ffff 	li	v0,-1
+  if(ret_val<0)
+  404fbc:	04410005 	bgez	v0,404fd4 <toplevel_fnc+0x100>
+  404fc0:	02601021 	move	v0,s3
+    INTERNAL_SYSCALL(exit, err_res, 1, 1);
+  404fc4:	24040001 	li	a0,1
+  404fc8:	24020fa1 	li	v0,4001
+  404fcc:	0000000c 	syscall
+
+  return result;
+}
+  404fd0:	02601021 	move	v0,s3
+  404fd4:	8fbf0030 	lw	ra,48(sp)
+  404fd8:	8fb3002c 	lw	s3,44(sp)
+  404fdc:	8fb20028 	lw	s2,40(sp)
+  404fe0:	8fb10024 	lw	s1,36(sp)
+  404fe4:	8fb00020 	lw	s0,32(sp)
+  404fe8:	03e00008 	jr	ra
+  404fec:	27bd0038 	addiu	sp,sp,56
+
+program data
+
+
+build/program-mips:     file format elf32-tradlittlemips
+
+Contents of section my_data:
+ 446400 64617461 00000000                    data....        
